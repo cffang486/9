@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
-<title>资料管理系统 - 支持新增、编辑、删除和本地图片上传</title>
+<title>9</title>
 <style>
   body {
     margin: 0;
@@ -61,6 +61,7 @@
   .item.active {
     background-color: #e1ecf4;
     font-weight: bold;
+    border-left: 4px solid #4a90e2;
   }
 
   /* 目录右侧整体容器 */
@@ -200,6 +201,7 @@
     width: 400px;
     max-width: 90vw;
     box-sizing: border-box;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
   }
   #addModal label {
     display: block;
@@ -330,7 +332,6 @@
   const searchBox = document.getElementById("searchBox");
   const loginBox = document.getElementById("loginBox");
   const passwordInput = document.getElementById("passwordInput");
-  const loginBtn = document.getElementById("loginBtn");
   const addBtn = document.getElementById("addBtn");
   const addModal = document.getElementById("addModal");
   const newTitleInput = document.getElementById("newTitle");
@@ -343,7 +344,10 @@
     itemList.innerHTML = "";
     const data = loadData();
     data.forEach((item, index) => {
-      if (item.title.includes(filter) || item.content.includes(filter)) {
+      if (
+        item.title.toLowerCase().includes(filter.toLowerCase()) ||
+        item.content.toLowerCase().includes(filter.toLowerCase())
+      ) {
         const div = document.createElement("div");
         div.className = "item";
         div.textContent = item.title;
@@ -484,20 +488,30 @@
     }
   });
 
-  loginBtn.onclick = () => {
-    if (passwordInput.value === PASSWORD) {
-      loggedIn = true;
-      alert("登录成功！");
-      loginBox.style.display = "none";
-      addBtn.style.display = "block";
-      if (currentIndex !== null) {
-        showEdit(currentIndex);
+  // 登录逻辑：登录后显示退出按钮，退出后恢复登录框，刷新页面
+  loginBox.addEventListener("click", e => {
+    if (e.target.id === "loginBtn") {
+      if (passwordInput.value === PASSWORD) {
+        loggedIn = true;
+        alert("登录成功！");
+        loginBox.innerHTML = `<button id="logoutBtn">退出登录</button>`;
+        addBtn.style.display = "block";
+        if (currentIndex !== null) {
+          showEdit(currentIndex);
+        }
+      } else {
+        alert("密码错误！");
       }
-    } else {
-      alert("密码错误！");
+      passwordInput.value = "";
+    } else if (e.target.id === "logoutBtn") {
+      loggedIn = false;
+      addBtn.style.display = "none";
+      // 恢复登录框
+      loginBox.innerHTML = `<input type="password" id="passwordInput" placeholder="请输入密码" />
+                            <button id="loginBtn">登录</button>`;
+      location.reload();
     }
-    passwordInput.value = "";
-  };
+  });
 
   addBtn.onclick = () => {
     newTitleInput.value = "";
@@ -528,6 +542,7 @@
         image: imageData || "https://via.placeholder.com/600x400?text=无图"
       });
       saveData(data);
+      alert("添加成功！");
       addModal.style.display = "none";
       renderList(searchBox.value.trim());
 
